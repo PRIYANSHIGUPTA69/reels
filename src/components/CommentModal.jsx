@@ -88,7 +88,7 @@ export default function CommentModal({ commentVideoObj, postComments, setComment
                     <div className={classes.commentSectionHeader}>
                         <div className={classes.avatarSection}>
                             <Avatar alt="Remy Sharp" src={commentVideoObj.userProfileImageURL} className={classes.avatarIcon} />
-                            <Typography variant="subtitle1" className={classes.profileName}>me_arunparihar</Typography>
+                            <Typography variant="subtitle1" className={classes.profileName}>me</Typography>
 
                         </div>
                         <div className={classes.optionsSection}>
