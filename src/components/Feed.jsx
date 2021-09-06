@@ -100,11 +100,9 @@ export default function Feed() {
 
     // For Video description Modal - open and close 
     const handleOpen = () => {
-        // console.log('Opened');
         setOpen(true);
     };
     const handleClose = () => {
-        // console.log('closed');
         setOpen(false);
         uploadNewPostInFirestore();
     };
@@ -144,6 +142,7 @@ export default function Feed() {
         function successFn() {
             uploadFileTask.snapshot.ref.getDownloadURL()
                 .then(async (url) => {
+                    console.log(currentUser.uid , "uid")
                     let postObjStructure = {
                         comments: [],
                         likes: [],
@@ -152,6 +151,7 @@ export default function Feed() {
                         createdAt: database.getUserTimeStamp(),
                         videoDescription,
                     } 
+                    
                     let postObj = await database.posts.add(postObjStructure);
                     let updatedUserPosts = user.postIds;
                     updatedUserPosts.push(postObj.id);
@@ -166,7 +166,7 @@ export default function Feed() {
     }
 
     useEffect(async () => {
-      
+      console.log(currentUser)
         let dataObject = await database.users.doc(currentUser.uid).get();
         setUser(dataObject.data());
         setPageLoading(false);
@@ -198,7 +198,8 @@ export default function Feed() {
                         let userObject = await database.users.doc(auid).get();
                         let { profileImageURL: userProfileImageURL, username } = userObject.data();
 
-                        // For likes, check if current user has liked the post
+                        // For likes, check if current user has liked the post\
+                        
                         videosDataArrFromFireStore.push({
                             videoUrl,
                             userProfileImageURL,
@@ -230,9 +231,9 @@ export default function Feed() {
                         let { url: videoUrl, auid, likes, videoDescription } = videos[i];
                         let puid = snapshot.docs[i].id;
                         let userObject = await database.users.doc(auid).get();
-                        let { profileImageURL: userProfileImageURL, username } = userObject.data();
-
-                        // For likes, check if current user has liked the post
+                        let userProfileImageURL = userObject.data().profileImageURL
+                        let username = userObject.data().username
+                        console.log(userObject.data() , "data")
                         videosDataArrFromFireStore.push({
                             videoUrl,
                             userProfileImageURL,
@@ -257,10 +258,8 @@ export default function Feed() {
 
     useEffect(() => {
         let allPosts = document.querySelectorAll("video");
-
         let scrollAndVideoActionConditionObject = {
             root: null,
-            rootMargin: "0px",
             threshold: "0.7"
         }
         let infiniteScrollConditionObject = {
@@ -271,22 +270,12 @@ export default function Feed() {
 
         function scrollAndVideoActionCallback(entries) {
             entries.forEach(entry => {
-                let post = entry.target;
+                let post = entry.target
                 post.play().then(() => {
                     if (entry.isIntersecting === false) post.pause();
                 })
             })
-            entries.forEach(entry => {
-                let post = entry.target;
-                if (entry.isIntersecting) {
-                    let postDimensions = post.getBoundingClientRect();
-                    window.scrollBy({
-                        top: postDimensions.top,
-                        left: postDimensions.left,
-                        behavior: 'smooth'
-                    })
-                }
-            })
+    
         }
         function infiniteScrollCallback(entries) {
             entries.forEach(entry => {
@@ -332,6 +321,7 @@ export default function Feed() {
     }
 
     const handleComment = async (videoObj) => {
+        console.log(videoObj , "videoobj")
         setCommentVideoObj(videoObj);
 
         let unsubscribe = await database.comments.orderBy("createdAt", "desc").onSnapshot(async snapshot => {
@@ -414,7 +404,7 @@ export default function Feed() {
                     <div className={classes.reelsContainer}>
                         {videos.map((videoObj) => {
                             return (
-                                <div className={classes.videoContainer} key={videoObj.puid}>
+                                <div className={classes.videoContainer } key={videoObj.puid}>
                                     <Video
                                         src={videoObj.videoUrl}
                                         id={videoObj.puid}
@@ -469,6 +459,7 @@ function Video(props) {
                 muted={true}
                 id={props.id}
                 src={props.src}
+                className="video"
                 onEnded={onVideoEnd}>
             </video>
         </>

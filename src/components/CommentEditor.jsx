@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext  , useEffect} from 'react';
 import { makeStyles, IconButton } from '@material-ui/core';
 import SendIcon from '@material-ui/icons/Send';
 import { AuthContext } from '../Contexts/AuthProvider';
@@ -40,17 +40,25 @@ export default function CommentEditor({commentVideoObj, setLoading}) {
 
     const classes = useStyles();
     const [comment, setComment] = useState('');
-
+    const { currentUser } = useContext(AuthContext);
+    const [userInfo , setUserInfo] = useState('');
     const handleCommentText = (e) => {
         setComment(e.target.value);
     }
-
+    useEffect(async () => {
+       let d = await database.users.doc(currentUser.uid).get()
+       let {username , profileImageURL} = d.data();
+       setUserInfo({name : username  ,profileURL : profileImageURL})
+       console.log(d.data() , "user info")
+    }, [])
+   
     const handleCommentPost = async () => {
         // Create structure of comment fields entity
+        console.log(commentVideoObj)
         let commentObjStructure = {
             puid: commentVideoObj.puid,
-            profileImageURL: commentVideoObj.userProfileImageURL,
-            username: commentVideoObj.username,
+            profileImageURL: userInfo.profileURL,
+            username: userInfo.name,
             description: comment,
             createdAt: database.getUserTimeStamp()
         }
@@ -58,12 +66,15 @@ export default function CommentEditor({commentVideoObj, setLoading}) {
 
         setLoading(true);
         // Add the new posted comment doc in firestore comments collection
+        console.log(commentObjStructure)
         let commentObj = await database.comments.add(commentObjStructure);
-        
+       
         // Get the post current comments and update doc by merging the new comment into doc
         let postRef = await database.posts.doc(commentVideoObj.puid).get();
         let post = postRef.data();
+        console.log(post.comments , commentObj.id  , "comment")
         await database.posts.doc(commentVideoObj.puid).update({
+
             comments: [...post.comments, commentObj.id]
         })
         setLoading(false);
